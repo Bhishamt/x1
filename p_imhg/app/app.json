@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "ABC Polytechnic",
+    "slug": "abc-polytechnic",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "abcpolytechnic",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#080c14"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#080c14"
+      },
+      "package": "com.abcpolytechnic.app"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.abcpolytechnic.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
