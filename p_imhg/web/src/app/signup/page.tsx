@@ -41,8 +41,8 @@ export default function SignupPage() {
         if (!form.full_name.trim()) { toast.error('Full name is required'); return }
         if (!form.department) { toast.error('Please select a department'); return }
         if (!form.roll_no.trim()) { toast.error('Roll number is required'); return }
-        if (!/^\d{2}[A-Z]{2}\d{3}$/i.test(form.roll_no.trim()) && form.roll_no.length < 4) {
-            toast.error('Enter a valid roll number (min 4 characters)'); return
+        if (!/^\d{1,3}$/.test(form.roll_no.trim())) {
+            toast.error('Roll number must be 1–3 digits only (e.g. 4, 04, 125)'); return
         }
         const year = Number(form.year)
         if (year < 1 || year > 4) { toast.error('Academic year must be 1–4'); return }
@@ -69,19 +69,17 @@ export default function SignupPage() {
 
             if (!authData.user) { toast.error('Signup failed. Please try again.'); return }
 
-            // Step 2: Insert into public.users
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error: profileError } = await (supabase.from('users') as any).insert({
-                id: authData.user.id,
-                full_name: form.full_name.trim(),
-                email: form.email.trim().toLowerCase(),
-                role_id: 2, // student
-                department: form.department,
-                roll_no: form.roll_no.trim().toUpperCase(),
-                year: year,
-                phone: form.phone.trim() || null,
-                is_active: true,
-            })
+            // Step 2: Update profile fields — trigger handle_new_user() already created the row
+            const { error: profileError } = await (supabase.from('users') as any)
+                .update({
+                    full_name: form.full_name.trim(),
+                    department: form.department,
+                    roll_no: form.roll_no.trim(),
+                    year: year,
+                    phone: form.phone.trim() || null,
+                    is_active: true,
+                })
+                .eq('id', authData.user.id)
 
             if (profileError) {
                 if (profileError.message.includes('duplicate') || profileError.code === '23505') {
@@ -194,11 +192,17 @@ export default function SignupPage() {
                             <input
                                 className="input-dark"
                                 type="text"
-                                placeholder="22CE001"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="e.g. 04"
                                 value={form.roll_no}
-                                onChange={e => set('roll_no', e.target.value)}
+                                onChange={e => set('roll_no', e.target.value.replace(/\D/g, ''))}
+                                maxLength={3}
                                 required
                             />
+                            <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                                Digits only, 1–3 characters (e.g. 4, 04, 125)
+                            </p>
                         </div>
                     </div>
 

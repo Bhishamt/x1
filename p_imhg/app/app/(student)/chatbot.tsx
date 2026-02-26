@@ -3,12 +3,31 @@ import {
     View, Text, TextInput, TouchableOpacity, ScrollView,
     StyleSheet, KeyboardAvoidingView, Platform, ActivityIndicator,
 } from 'react-native'
+import { AuthProvider, useAuth } from '../../src/context/AuthContext'
 import { CHATBOT_URL } from '../../config/api'
 
 interface Message { role: 'user' | 'assistant'; content: string }
 
+// Rule-based fallback when server is unreachable
+function getLocalFallbackReply(message: string): string {
+    const msg = message.toLowerCase()
+    if (msg.includes('admission') || msg.includes('apply') || msg.includes('enroll'))
+        return '📋 **Admissions** are open for 2025-26. Visit the Admissions page or contact the office at +91-1905-000000.'
+    if (msg.includes('fee') || msg.includes('fees') || msg.includes('cost'))
+        return '💰 **Fee Structure**: Tuition is ₹18,000/year for govt-aided students. Exam fees are additional.'
+    if (msg.includes('result') || msg.includes('marks') || msg.includes('grade'))
+        return '📊 **Results** are published on the Student Portal. Go to the Results section in your dashboard.'
+    if (msg.includes('course') || msg.includes('branch') || msg.includes('department'))
+        return '📚 **Programs**: Computer Engineering, Civil, Mechanical, Electrical, EC, and IT.'
+    if (msg.includes('exam') || msg.includes('schedule') || msg.includes('date'))
+        return '📅 **Exam Schedule** is published 3 weeks before exams. Check the portal for Nov-Dec/Apr-May dates.'
+    if (msg.includes('hello') || msg.includes('hi') || msg.includes('help'))
+        return '👋 Hello! I\'m the AI Assistant. Ask me about Admissions, Fees, Courses, or Results.'
+    return '🤖 (Offline Mode) I can help with college info like admissions, results, and courses. Please ask a specific question!'
+}
 
 export default function ChatbotScreen() {
+    const { session } = useAuth()
     const [messages, setMessages] = useState<Message[]>([{
         role: 'assistant',
         content: 'Hello! 👋 I\'m your ABC Polytechnic AI Assistant. Ask me anything about courses, results, exams, or college procedures.',
@@ -26,18 +45,44 @@ export default function ChatbotScreen() {
         scrollRef.current?.scrollToEnd({ animated: true })
 
         try {
+            console.log(`[Chatbot] → POST ${CHATBOT_URL}`)
+            console.log(`[Chatbot] → Body:`, JSON.stringify({ message: userMsg.content }))
+
             const res = await fetch(CHATBOT_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token || ''}`
+                },
                 body: JSON.stringify({ message: userMsg.content }),
             })
-            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+
+            console.log(`[Chatbot] ← Status: ${res.status}`)
+
+            if (!res.ok) {
+                const errText = await res.text()
+                console.error(`[Chatbot] ← Error body: ${errText}`)
+                throw new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`)
+            }
+
             const json = await res.json()
             if (json.error) throw new Error(json.error)
-            setMessages(prev => [...prev, { role: 'assistant', content: json.reply ?? 'Sorry, could not get a response.' }])
-        } catch (err) {
+
+            console.log(`[Chatbot] ← Reply received ✓`)
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: json.reply ?? 'Sorry, could not get a response.'
+            }])
+        } catch (err: any) {
             console.error('Chatbot error:', err)
-            setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Could not reach assistant. Make sure you are on the same WiFi as the server.' }])
+            console.error('Stack:', err?.stack)
+
+            // Local Fallback Logic
+            const fallbackReply = getLocalFallbackReply(userMsg.content)
+            setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: `${fallbackReply}\n\n⚠️ _Note: Using offline fallback because the server at ${CHATBOT_URL} is unreachable._`
+            }])
         } finally {
             setLoading(false)
             setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100)

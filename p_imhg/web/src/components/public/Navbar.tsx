@@ -13,6 +13,7 @@ const PUBLIC_NAV = [
     { label: 'Home', href: '/' },
     { label: 'About', href: '/about' },
     { label: 'Courses', href: '/courses' },
+    { label: 'Admissions', href: '/admissions' },
     { label: 'Contact', href: '/contact' },
 ]
 
@@ -30,14 +31,15 @@ export default function GlobalNavbar() {
     // On mount: get current session and subscribe to changes
     useEffect(() => {
         // Initial session load
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        supabase.auth.getUser().then((res: any) => {
+            const user = res.data?.user
             setUser(user)
             if (user) fetchProfile(user.id)
             else setLoaded(true)
         })
 
-        // Realtime auth state changes (login / logout anywhere)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        // Realtime auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
             const u = session?.user ?? null
             setUser(u)
             if (u) fetchProfile(u.id)

@@ -50,6 +50,7 @@
       "typedRoutes": true
     },
     "extra": {
+      "apiUrl": "https://yourdomain.com",
       "eas": {
         "projectId": "3ca7f30b-c38f-4181-926f-86c43d0a02a6"
       },

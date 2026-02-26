@@ -24,7 +24,7 @@ export default function ResultsScreen() {
                 .select('*, courses(name,code)')
                 .eq('student_id', user.id)
                 .order('semester', { ascending: false })
-            setResults((data as ResultRow[]) ?? [])
+            setResults((data as unknown as ResultRow[]) ?? [])
             setLoading(false)
         })
     }, [])

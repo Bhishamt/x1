@@ -143,6 +143,12 @@ export interface Database {
       is_admin: { Args: Record<string, never>; Returns: boolean }
       current_role_id: { Args: Record<string, never>; Returns: number }
     }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
 }
 

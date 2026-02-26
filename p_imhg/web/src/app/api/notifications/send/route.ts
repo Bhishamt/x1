@@ -42,12 +42,13 @@ export async function POST(req: NextRequest) {
         const typedStudents = students as unknown as { id: string; push_token: string | null }[]
 
         // Insert notification records for each student
-        await supabase.from('notifications').insert(
+        await (supabase.from('notifications') as any).insert(
             typedStudents.map(s => ({
                 user_id: s.id,
                 title: body.title,
                 message: body.message,
                 type: body.type,
+                is_read: false,
             }))
         )
 

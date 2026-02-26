@@ -29,9 +29,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     useEffect(() => {
+        // Safety timeout — if Supabase doesn't respond in 5s, stop loading and show login
+        const timeout = setTimeout(() => {
+            console.warn('[Auth] Supabase getSession timed out — showing login')
+            setLoading(false)
+        }, 5000)
+
         supabase.auth.getSession().then(async ({ data: { session } }) => {
+            clearTimeout(timeout)
             setSession(session)
             if (session?.user) await fetchRole(session.user.id)
+            setLoading(false)
+        }).catch((err) => {
+            clearTimeout(timeout)
+            console.error('[Auth] getSession failed:', err)
             setLoading(false)
         })
 
@@ -44,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         })
 
-        return () => subscription.unsubscribe()
+        return () => { subscription.unsubscribe(); clearTimeout(timeout) }
     }, [])
 
     return (
