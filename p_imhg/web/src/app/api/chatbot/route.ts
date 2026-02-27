@@ -36,30 +36,21 @@ const schema = z.object({
 
 // Topics that are explicitly allowed — pass directly to AI
 const ALLOWED_KEYWORDS = [
-    'python', 'program', 'code', 'algorithm', 'data structure', 'linked list',
-    'network', 'artificial intelligence', ' ai ', 'machine learning', 'ml',
-    'deep learning', 'computer', 'software', 'hardware', 'engineering',
-    'database', 'sql', 'web', 'admission', 'fee', 'exam', 'result', 'course',
-    'placement', 'college', 'polytechnic', 'department', 'faculty', 'hostel',
-    'library', 'scholarship', 'semester', 'internship', 'project', 'assignment',
-    'lab', 'timetable', 'marks', 'grade', 'certificate', 'diploma', 'branch',
-    'recruitment', 'array', 'stack', 'queue', 'tree', 'graph', 'sorting',
-    'recursion', 'object', 'class', 'function', 'variable', 'loop',
+    'admissions', 'courses', 'fees', 'exams', 'results', 'placements', 'departments', 'abc polytechnic'
 ]
 
-// Topics that are clearly off-topic
-const BLOCKED_KEYWORDS = [
-    'politics', 'politician', 'election', 'celebrity', 'actor', 'actress',
-    'bollywood', 'hollywood', 'gossip', 'religion', 'war', 'weapon',
-    'drug', 'gamble', 'crypto', 'bitcoin', 'forex',
-]
-
-const OFF_TOPIC_REPLY = "I'm an academic assistant for ABC Polytechnic. Please ask questions related to education, courses, admissions, exams, results, or college life."
+const OFF_TOPIC_REPLY = "I am an academic assistant. Please ask education-related questions."
 
 function isOffTopic(message: string): boolean {
-    const msg = ' ' + message.toLowerCase() + ' '
-    if (ALLOWED_KEYWORDS.some(k => msg.includes(k))) return false
-    return BLOCKED_KEYWORDS.some(k => msg.includes(k))
+    const msg = message.toLowerCase()
+
+    // Check if any allowed keyword exists in the message
+    const hasAllowed = ALLOWED_KEYWORDS.some(k => msg.includes(k))
+
+    // If NO allowed keyword is found, block it
+    if (!hasAllowed) return true;
+
+    return false;
 }
 
 // Rule-based fallback when Groq is unavailable
@@ -92,6 +83,7 @@ export async function POST(req: NextRequest) {
     console.log('[API Health] Chatbot POST endpoint hit')
     try {
         const body = await req.json()
+        console.log("Request body:", body)
         const { message } = schema.parse(body)
 
         // Topic filter — returns immediately for clearly off-topic questions
@@ -117,7 +109,7 @@ export async function POST(req: NextRequest) {
                 const groq = new OpenAI({ apiKey, baseURL: GROQ_BASE_URL })
                 console.log(`[Chatbot] → Groq (${MODEL}): "${message.slice(0, 60)}"`)
 
-                const completion = await groq.chat.completions.create({
+                const response = await groq.chat.completions.create({
                     model: MODEL,
                     messages: [
                         { role: 'system', content: SYSTEM_PROMPT },
@@ -127,12 +119,14 @@ export async function POST(req: NextRequest) {
                     temperature: 0.7,
                 })
 
-                reply = completion.choices?.[0]?.message?.content ?? ''
-                tokensUsed = completion.usage?.total_tokens ?? null
+                console.log("Response:", response)
+
+                reply = response.choices?.[0]?.message?.content ?? ''
+                tokensUsed = response.usage?.total_tokens ?? null
                 usedAI = true
                 console.log(`[Chatbot] ✓ Groq replied (${tokensUsed} tokens)`)
             } catch (err: any) {
-                console.error('[Chatbot] Groq error:', err?.message ?? err)
+                console.error('[Chatbot] AI Generation error - no swallow:', err)
             }
         }
 

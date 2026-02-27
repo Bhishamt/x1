@@ -44,7 +44,7 @@ Verify tables exist: go to **Table Editor** → you should see:
 6. Run `seed.sql` in SQL Editor.
 
 ---
-
+`
 ## Step 4: Get Your API Keys
 
 1. Go to **Project Settings > API**.

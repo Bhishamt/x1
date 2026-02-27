@@ -25,7 +25,7 @@ export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // Public routes — always accessible (no auth required)
-    const PUBLIC_PATHS = ['/login', '/signup', '/auth/callback', '/about', '/courses', '/admissions', '/faculty', '/placements', '/notices', '/gallery', '/contact']
+    const PUBLIC_PATHS = ['/login', '/signup', '/auth/callback', '/about', '/courses', '/admissions', '/faculty', '/placements', '/student/announcements', '/gallery', '/contact']
     const isPublic = pathname === '/' || PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
     if (isPublic) {
         // If logged in and hitting login/signup, redirect to portal

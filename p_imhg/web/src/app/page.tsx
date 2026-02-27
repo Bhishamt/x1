@@ -109,7 +109,7 @@ export default async function HomePage() {
             { icon: '📋', label: 'Admissions', desc: 'Apply now for 2025-26', href: '/admissions' },
             { icon: '📊', label: 'Results', desc: 'Check your scores', href: '/login' },
             { icon: '🔔', label: 'Notifications', desc: 'Stay updated', href: '/login' },
-            { icon: '📢', label: 'Announcements', desc: 'Latest notices', href: '/notices' },
+            { icon: '📢', label: 'Announcements', desc: 'Latest notices', href: '/student/announcements' },
           ].map(q => (
             <Link key={q.label} href={q.href} className="quick-link-card" style={{ textDecoration: 'none' }}>
               <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', borderLeft: '3px solid #3b82f6' }}>

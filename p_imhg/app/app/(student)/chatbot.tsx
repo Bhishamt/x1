@@ -45,7 +45,7 @@ export default function ChatbotScreen() {
         scrollRef.current?.scrollToEnd({ animated: true })
 
         try {
-            console.log(`[Chatbot] → POST ${CHATBOT_URL}`)
+            console.log("Chat URL:", CHATBOT_URL)
             console.log(`[Chatbot] → Body:`, JSON.stringify({ message: userMsg.content }))
 
             const res = await fetch(CHATBOT_URL, {
@@ -57,7 +57,7 @@ export default function ChatbotScreen() {
                 body: JSON.stringify({ message: userMsg.content }),
             })
 
-            console.log(`[Chatbot] ← Status: ${res.status}`)
+            console.log("Status:", res.status)
 
             if (!res.ok) {
                 const errText = await res.text()
@@ -74,7 +74,7 @@ export default function ChatbotScreen() {
                 content: json.reply ?? 'Sorry, could not get a response.'
             }])
         } catch (err: any) {
-            console.error('Chatbot error:', err)
+            console.log("Error:", err)
             console.error('Stack:', err?.stack)
 
             // Local Fallback Logic

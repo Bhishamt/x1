@@ -5,9 +5,6 @@ import Constants from 'expo-constants'
  * Base URL for the Next.js web backend.
  * In production builds, this reads EXPO_PUBLIC_API_URL or falls back to the app.json extra.apiUrl URL.
  */
-const DEV_ANDROID_EMU = '10.0.2.2'     // Android emulator loopback to host
-const PORT = 3000
-
 function getBaseUrl(): string {
     // 1. Explicit environment variable takes absolute priority
     if (process.env.EXPO_PUBLIC_API_URL) {
@@ -23,16 +20,12 @@ function getBaseUrl(): string {
     // 3. Web platform — relative URLs work fine
     if (Platform.OS === 'web') return ''
 
-    // 4. Fallback logic for local Android Emulator
-    const host = DEV_ANDROID_EMU
-    return `http://${host}:${PORT}`
+    // No localhost or local IP fallbacks in production
+    return 'https://x1-drab.vercel.app'
 }
 
 export const API_BASE = getBaseUrl()
-if (__DEV__) {
-    console.log(`[API] Base URL resolved to: ${API_BASE}`)
-}
 
-export const CHATBOT_URL = process.env.EXPO_PUBLIC_API_URL
-    ? `${process.env.EXPO_PUBLIC_API_URL}/api/chatbot`
-    : `${API_BASE}/api/chatbot`
+console.log("[API] Production Base URL:", API_BASE);
+
+export const CHATBOT_URL = `${API_BASE}/api/chatbot`

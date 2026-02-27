@@ -103,12 +103,12 @@ DECLARE
 BEGIN
   pct := (NEW.marks_obtained / NEW.max_marks) * 100;
   NEW.grade := CASE
-    WHEN pct >= 90 THEN 'O'
-    WHEN pct >= 80 THEN 'A+'
-    WHEN pct >= 70 THEN 'A'
-    WHEN pct >= 60 THEN 'B+'
-    WHEN pct >= 50 THEN 'B'
-    WHEN pct >= 40 THEN 'C'
+    WHEN pct >= 90 THEN 'A+'
+    WHEN pct >= 80 THEN 'A'
+    WHEN pct >= 70 THEN 'B+'
+    WHEN pct >= 60 THEN 'B'
+    WHEN pct >= 50 THEN 'C'
+    WHEN pct >= 40 THEN 'D'
     ELSE 'F'
   END;
   RETURN NEW;

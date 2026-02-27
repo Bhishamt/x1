@@ -16,8 +16,16 @@ export default function LoginPage() {
         e.preventDefault()
         setLoading(true)
         try {
+            console.log("Login start")
+            console.log("Email:", email)
+            console.log("Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
+
             const { error } = await supabase.auth.signInWithPassword({ email, password })
-            if (error) { toast.error(error.message); return }
+            if (error) {
+                console.error("FULL LOGIN ERROR:", error)
+                toast.error(error.message);
+                return
+            }
 
             // Fetch role to redirect properly
             const { data: { user } } = await supabase.auth.getUser()
