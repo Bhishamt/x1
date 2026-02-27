@@ -4,10 +4,17 @@ import { StatusBar } from 'expo-status-bar'
 import { View, ActivityIndicator } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import { AuthProvider, useAuth } from '../src/context/AuthContext'
-import { registerPushToken, configureForegroundHandler } from '../src/lib/notifications'
+import { registerPushToken } from '../src/lib/notifications'
 
-// Configure how notifications look when app is open — must be at top level
-configureForegroundHandler()
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+    }),
+});
 
 function NavigationGuard() {
     const { session, loading } = useAuth()

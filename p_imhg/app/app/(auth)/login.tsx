@@ -3,6 +3,7 @@ import {
     View, Text, TextInput, TouchableOpacity, StyleSheet,
     KeyboardAvoidingView, Platform, Alert, ActivityIndicator,
 } from 'react-native'
+import * as Notifications from 'expo-notifications'
 import { supabase } from '../../src/lib/supabase'
 
 export default function LoginScreen() {
@@ -13,8 +14,18 @@ export default function LoginScreen() {
     async function handleLogin() {
         if (!email || !password) { Alert.alert('Error', 'Please fill in all fields'); return }
         setLoading(true)
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
-        if (error) Alert.alert('Login Failed', error.message)
+        const { error, data } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+            Alert.alert('Login Failed', error.message)
+        } else if (data.user) {
+            try {
+                const token = (await Notifications.getExpoPushTokenAsync()).data;
+                console.log("Expo Push Token:", token);
+                await supabase.from('users').update({ push_token: token }).eq('id', data.user.id);
+            } catch (err) {
+                console.log("Push token registration failed on login", err);
+            }
+        }
         setLoading(false)
     }
 

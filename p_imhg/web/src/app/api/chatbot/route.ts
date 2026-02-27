@@ -36,7 +36,13 @@ const schema = z.object({
 
 // Topics that are explicitly allowed — pass directly to AI
 const ALLOWED_KEYWORDS = [
-    'admissions', 'courses', 'fees', 'exams', 'results', 'placements', 'departments', 'abc polytechnic'
+    'admissions', 'courses', 'fees', 'exams', 'results', 'placements', 'departments', 'abc polytechnic',
+    'python', 'programming', 'coding', 'software', 'engineering', 'computer science', 'algorithms', 'technology', 'database', 'web development'
+]
+
+// Explicitly forbidden non-academic topics
+const RESTRICTED_KEYWORDS = [
+    'politics', 'celebrity gossip', 'crypto trading', 'adult content', 'illegal content', 'crypto', 'celebrity'
 ]
 
 const OFF_TOPIC_REPLY = "I am an academic assistant. Please ask education-related questions."
@@ -44,12 +50,16 @@ const OFF_TOPIC_REPLY = "I am an academic assistant. Please ask education-relate
 function isOffTopic(message: string): boolean {
     const msg = message.toLowerCase()
 
-    // Check if any allowed keyword exists in the message
+    // 1. Immediately block if it contains restricted words
+    const hasRestricted = RESTRICTED_KEYWORDS.some(k => msg.includes(k))
+    if (hasRestricted) return true;
+
+    // 2. Safely allow if it contains explicit academic/technical keywords
     const hasAllowed = ALLOWED_KEYWORDS.some(k => msg.includes(k))
+    if (hasAllowed) return false;
 
-    // If NO allowed keyword is found, block it
-    if (!hasAllowed) return true;
-
+    // 3. Heuristic: allow short natural questions generally to reach the AI prompt
+    // The strong system prompt will handle vague off-topic stuff gracefully anyway.
     return false;
 }
 
@@ -108,6 +118,7 @@ export async function POST(req: NextRequest) {
                 // Use OpenAI SDK pointed at Groq's OpenAI-compatible endpoint
                 const groq = new OpenAI({ apiKey, baseURL: GROQ_BASE_URL })
                 console.log(`[Chatbot] → Groq (${MODEL}): "${message.slice(0, 60)}"`)
+                console.log("Sending request to Groq:", message);
 
                 const response = await groq.chat.completions.create({
                     model: MODEL,
