@@ -18,12 +18,35 @@ export default function LoginScreen() {
         if (error) {
             Alert.alert('Login Failed', error.message)
         } else if (data.user) {
+            console.log("Auth User ID:", data.user.id);
+
             try {
-                const token = (await Notifications.getExpoPushTokenAsync()).data;
-                console.log("Expo Push Token:", token);
-                await supabase.from('users').update({ push_token: token }).eq('id', data.user.id);
+                // PART 2: Logs Push Token Gen
+                const tokenResponse = await Notifications.getExpoPushTokenAsync();
+                console.log("Full token response:", tokenResponse);
+                const token = tokenResponse.data;
+                console.log("Extracted token:", token);
+
+                // PART 4: Confirm Row Exists Before Update
+                const { data: existingUser } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+                console.log("Existing user row:", existingUser);
+
+                // PART 3: Log Supabase Update Result
+                const { data: updateData, error: updateError } = await supabase
+                    .from('users')
+                    .update({ push_token: token })
+                    .eq('id', data.user.id)
+                    .select();
+
+                console.log("Update response:", updateData);
+                console.log("Update error:", updateError);
+
             } catch (err) {
-                console.log("Push token registration failed on login", err);
+                console.error("Push token registration failed on login", err);
             }
         }
         setLoading(false)

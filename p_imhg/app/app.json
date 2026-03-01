@@ -53,6 +53,7 @@
     "extra": {
       "apiUrl": "https://x1-drab.vercel.app",
       "supabaseUrl": "https://uufmfjhbwqkoqotyqhfs.supabase.co",
+      "supabaseProxyUrl": "https://abcpolytechnic.jiobase.com",
       "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1Zm1mamhid3Frb3FvdHlxaGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MTk3NTcsImV4cCI6MjA4NzQ5NTc1N30.xTfwGE03HIXXNsfFx-fYPKGIcFbsfpixUuk1oTuInc4",
       "eas": {
         "projectId": "3ca7f30b-c38f-4181-926f-86c43d0a02a6"
