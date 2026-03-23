@@ -26,7 +26,7 @@ export default function SignupPage() {
         confirm_password: '',
         department: '',
         roll_no: '',
-        year: '1',
+        semester: '1',
         phone: '',
     })
 
@@ -44,8 +44,8 @@ export default function SignupPage() {
         if (!/^\d{1,3}$/.test(form.roll_no.trim())) {
             toast.error('Roll number must be 1–3 digits only (e.g. 4, 04, 125)'); return
         }
-        const year = Number(form.year)
-        if (year < 1 || year > 4) { toast.error('Academic year must be 1–4'); return }
+        const semester = Number(form.semester)
+        if (semester < 1 || semester > 6) { toast.error('Semester must be 1–6'); return }
         if (form.password.length < 6) { toast.error('Password must be at least 6 characters'); return }
         if (form.password !== form.confirm_password) { toast.error('Passwords do not match'); return }
 
@@ -75,7 +75,8 @@ export default function SignupPage() {
                     full_name: form.full_name.trim(),
                     department: form.department,
                     roll_no: form.roll_no.trim(),
-                    year: year,
+                    year: Math.ceil(semester / 2),
+                    semester: semester,
                     phone: form.phone.trim() || null,
                     is_active: true,
                 })
@@ -210,18 +211,20 @@ export default function SignupPage() {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                         <div>
                             <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.4rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                Academic Year *
+                                Semester *
                             </label>
                             <select
                                 className="input-dark"
-                                value={form.year}
-                                onChange={e => set('year', e.target.value)}
+                                value={form.semester}
+                                onChange={e => set('semester', e.target.value)}
                                 required
                             >
-                                <option value="1">1st Year</option>
-                                <option value="2">2nd Year</option>
-                                <option value="3">3rd Year</option>
-                                <option value="4">4th Year</option>
+                                <option value="1">1st Semester</option>
+                                <option value="2">2nd Semester</option>
+                                <option value="3">3rd Semester</option>
+                                <option value="4">4th Semester</option>
+                                <option value="5">5th Semester</option>
+                                <option value="6">6th Semester</option>
                             </select>
                         </div>
                         <div>

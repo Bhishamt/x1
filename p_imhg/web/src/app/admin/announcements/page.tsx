@@ -46,7 +46,27 @@ export default function AdminAnnouncementsPage() {
                 ? await (supabase.from('announcements') as any).update(payload).eq('id', editing.id)
                 : await (supabase.from('announcements') as any).insert(payload)
             if (error) { toast.error(error.message); return }
-            toast.success(editing ? 'Updated' : 'Created'); setShowModal(false); load()
+            toast.success(editing ? 'Updated' : 'Created')
+
+            // Send push notification for new published announcements
+            if (!editing && form.is_published) {
+                try {
+                    await fetch('/api/push/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: `📢 ${form.title}`,
+                            message: form.content.slice(0, 200),
+                            target_role: form.target_role,
+                        }),
+                    })
+                } catch {
+                    // Push notification failure should not block announcement creation
+                    console.warn('Push notification failed, announcement was still created')
+                }
+            }
+
+            setShowModal(false); load()
         } finally { setSaving(false) }
     }
 
@@ -78,6 +98,9 @@ export default function AdminAnnouncementsPage() {
                                 </div>
                                 <h3 style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', margin: '0 0 0.25rem' }}>{a.title}</h3>
                                 <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>{a.content.slice(0, 120)}{a.content.length > 120 ? '…' : ''}</p>
+                                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.5rem 0 0' }}>
+                                    {a.published_at ? formatDate(a.published_at) : 'Not published'}
+                                </p>
                             </div>
                             <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
                                 <button onClick={() => openEdit(a)} className="btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>Edit</button>

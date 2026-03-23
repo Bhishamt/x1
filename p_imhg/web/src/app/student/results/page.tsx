@@ -5,7 +5,7 @@ import Badge from '@/components/ui/Badge'
 import { getGradeColor, percentage } from '@/lib/utils'
 import type { Tables } from '@/types/database.types'
 
-type Result = Tables<'results'> & { courses: { name: string; code: string } | null }
+type Result = Tables<'results'> & { subject_name?: string }
 type Summary = { student_id: string; academic_year: string; semester: number; percentage: number; total_subjects: number; failed_subjects: number }
 
 export default async function ResultsPage() {
@@ -15,17 +15,26 @@ export default async function ResultsPage() {
 
     const { data: rawResults } = await supabase
         .from('results')
-        .select('*, courses(name, code)')
+        .select('*')
         .eq('student_id', user.id)
         .order('academic_year', { ascending: false })
         .order('semester', { ascending: false })
+
+    const { data: rawSubjects } = await supabase.from('subjects').select('subject_code, subject_name')
+    const allSubjects = (rawSubjects ?? []) as unknown as { subject_code: string; subject_name: string }[]
+    const subjMap = new Map(allSubjects.map(s => [s.subject_code, s.subject_name]))
+
+    const mappedResults = ((rawResults ?? []) as unknown as Tables<'results'>[]).map(r => ({
+        ...r,
+        subject_name: subjMap.get(r.subject_code) || r.subject_code
+    }))
 
     const { data: rawSummary } = await supabase
         .from('student_result_summary')
         .select('*')
         .eq('student_id', user.id)
 
-    const results = (rawResults ?? []) as unknown as Result[]
+    const results = mappedResults as unknown as Result[]
     const summary = (rawSummary ?? []) as unknown as Summary[]
 
     // Group by semester+year
@@ -85,10 +94,10 @@ export default async function ResultsPage() {
                                 {rows.map(r => (
                                     <tr key={r.id}>
                                         <td style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
-                                            {r.courses?.name ?? '—'}
+                                            {r.subject_name ?? '—'}
                                         </td>
                                         <td><span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: '0.8rem' }}>
-                                            {r.courses?.code ?? '—'}
+                                            {r.subject_code ?? '—'}
                                         </span></td>
                                         <td><Badge variant="info">{r.exam_type}</Badge></td>
                                         <td>{r.marks_obtained} / {r.max_marks}</td>

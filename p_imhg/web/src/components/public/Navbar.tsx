@@ -123,7 +123,7 @@ export default function GlobalNavbar() {
                         </>
                     ) : (
                         <Link href="/login" className="btn-primary" style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem', textDecoration: 'none' }}>
-                            Student Login
+                            Login
                         </Link>
                     )}
                 </div>
@@ -166,7 +166,7 @@ export default function GlobalNavbar() {
                                 display: 'block', background: 'linear-gradient(135deg,#3b82f6,#2563eb)',
                                 color: 'white', textDecoration: 'none', borderRadius: '0.5rem',
                                 padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 600,
-                            }}>Student Login</Link>
+                            }}>Login</Link>
                         )}
                     </div>
                 </div>

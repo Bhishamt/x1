@@ -5,8 +5,9 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
+import { ROLE_MAP } from '@/types/database.types'
 
-interface NavItem { href: string; label: string; icon: string }
+interface NavItem { href: string; label: string; icon: string; minRole?: number }
 
 const studentNav: NavItem[] = [
     { href: '/', label: 'Home', icon: '🏠' },
@@ -17,24 +18,32 @@ const studentNav: NavItem[] = [
     { href: '/student/chatbot', label: 'AI Assistant', icon: '🤖' },
 ]
 
+// minRole: max role_id allowed to see this item (lower = higher privilege)
 const adminNav: NavItem[] = [
     { href: '/', label: 'Home', icon: '🏠' },
     { href: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/admin/profile', label: 'Profile', icon: '👤' },
     { href: '/admin/students', label: 'Students', icon: '🎓' },
-    { href: '/admin/courses', label: 'Courses', icon: '📚' },
+    { href: '/admin/subjects', label: 'Subjects', icon: '📘', minRole: 2 },
     { href: '/admin/results', label: 'Results', icon: '📋' },
-    { href: '/admin/announcements', label: 'Announcements', icon: '📢' },
+    { href: '/admin/corrections', label: 'Corrections', icon: '✏️' },
+    { href: '/admin/announcements', label: 'Announcements', icon: '📢', minRole: 2 },
     { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
+    { href: '/admin/manage', label: 'Admin Management', icon: '⚙️', minRole: 1 },
 ]
 
-interface SidebarProps { role: 'admin' | 'student'; userName: string; email: string }
+interface SidebarProps { role: 'admin' | 'student'; roleId?: number; userName: string; email: string }
 
-export default function Sidebar({ role, userName, email }: SidebarProps) {
+export default function Sidebar({ role, roleId = 5, userName, email }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
-    const navItems = role === 'admin' ? adminNav : studentNav
+    const navItems = role === 'admin'
+        ? adminNav.filter(item => !item.minRole || roleId <= item.minRole)
+        : studentNav
+
+    const roleName = ROLE_MAP[roleId] ?? 'student'
+    const roleLabel = roleName.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
 
     async function handleLogout() {
         await supabase.auth.signOut()
@@ -59,7 +68,7 @@ export default function Sidebar({ role, userName, email }: SidebarProps) {
                             ABC Polytechnic
                         </div>
                         <div style={{ fontSize: '0.7rem', color: 'var(--accent)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                            {role === 'admin' ? '⚡ Admin Panel' : '🎓 Student Portal'}
+                            {role === 'admin' ? `⚡ ${roleLabel}` : '🎓 Student Portal'}
                         </div>
                     </div>
                 </div>
@@ -77,7 +86,7 @@ export default function Sidebar({ role, userName, email }: SidebarProps) {
                     <Link
                         key={item.href}
                         href={item.href}
-                        className={cn('sidebar-link', pathname.startsWith(item.href) && 'active')}
+                        className={cn('sidebar-link', pathname.startsWith(item.href) && item.href !== '/' && 'active', pathname === item.href && 'active')}
                     >
                         <span style={{ fontSize: '1rem' }}>{item.icon}</span>
                         {item.label}

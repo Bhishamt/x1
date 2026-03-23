@@ -9,19 +9,21 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
     const { data: rawProfile } = await supabase
         .from('users')
-        .select('full_name, email, role_id')
+        .select('full_name, email, role_id, department')
         .eq('id', user.id)
         .single()
-    const profile = rawProfile as unknown as { full_name: string; email: string; role_id: number } | null
+    const profile = rawProfile as unknown as { full_name: string; email: string; role_id: number; department: string | null } | null
 
-    if (profile?.role_id !== 1) redirect('/student/profile')
+    // Allow all staff roles (1=super_admin, 2=admin, 3=hod, 4=class_incharge)
+    if (!profile || profile.role_id >= 5) redirect('/student/profile')
 
     return (
         <div>
             <Sidebar
                 role="admin"
-                userName={profile?.full_name ?? 'Admin'}
-                email={profile?.email ?? user.email ?? ''}
+                roleId={profile.role_id}
+                userName={profile.full_name ?? 'Admin'}
+                email={profile.email ?? user.email ?? ''}
             />
             <main className="page-container fade-in">{children}</main>
         </div>
