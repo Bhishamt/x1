@@ -4,10 +4,11 @@ import { adminSupabase } from '@/lib/supabase/admin'
 
 export async function DELETE(
     req: NextRequest,
-    { params }: { params: { id: string } }
+    context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const studentId = params.id
+        const { id } = await context.params
+        const studentId = id
         const supabase = await createClient()
 
         // 1. Verify caller is super_admin
