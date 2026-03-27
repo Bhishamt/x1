@@ -1,0 +1,65 @@
+{
+  "expo": {
+    "name": "ABC Polytechnic",
+    "slug": "abc-polytechnic",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "abcpolytechnic",
+    "userInterfaceStyle": "dark",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#080c14"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#080c14"
+      },
+      "package": "com.abcpolytechnic.app",
+      "permissions": [
+        "INTERNET",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.VIBRATE",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.abcpolytechnic.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#080c14",
+          "sounds": [],
+          "androidMode": "default",
+          "androidCollapsedTitle": "#{unread_notifications} new interactions"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "apiUrl": "https://x1-drab.vercel.app",
+      "supabaseUrl": "https://uufmfjhbwqkoqotyqhfs.supabase.co",
+      "supabaseProxyUrl": "https://abcpolytechnic.jiobase.com",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV1Zm1mamhid3Frb3FvdHlxaGZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5MTk3NTcsImV4cCI6MjA4NzQ5NTc1N30.xTfwGE03HIXXNsfFx-fYPKGIcFbsfpixUuk1oTuInc4",
+      "eas": {
+        "projectId": "3ca7f30b-c38f-4181-926f-86c43d0a02a6"
+      },
+      "router": {}
+    },
+    "owner": "bhisham0000007"
+  }
+}

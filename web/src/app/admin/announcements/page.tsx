@@ -1,0 +1,233 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import PageHeader from '@/components/layout/PageHeader'
+import Badge from '@/components/ui/Badge'
+import { formatDate, getCategoryBadge } from '@/lib/utils'
+import { cn } from '@/lib/utils'
+import toast from 'react-hot-toast'
+import type { Announcement } from '@/types/database.types'
+
+type Department = { id: string; name: string }
+
+const EMPTY = { 
+    title: '', 
+    content: '', 
+    category: 'general', 
+    is_pinned: false, 
+    is_published: true, 
+    target_role: null as number | null, 
+    target_department: '', 
+    target_semester: 0 as number | '', 
+    expires_at: '' 
+}
+
+export default function AdminAnnouncementsPage() {
+    const supabase = createClient()
+    const [items, setItems] = useState<Announcement[]>([])
+    const [departments, setDepartments] = useState<Department[]>([])
+    const [showModal, setShowModal] = useState(false)
+    const [editing, setEditing] = useState<any>(null)
+    const [form, setForm] = useState({ ...EMPTY })
+    const [saving, setSaving] = useState(false)
+    const [userContext, setUserContext] = useState({ roleId: 99, departmentId: '', semester: null as number | null })
+
+    useEffect(() => { load(); loadDepartments() }, [])
+
+    async function loadDepartments() {
+        const { data } = await supabase.from('departments').select('id, name').eq('is_active', true)
+        if (data) setDepartments(data)
+    }
+
+    async function load() {
+        setLoading(true)
+        try {
+            const [{ data: authData }, { data: annData }] = await Promise.all([
+                supabase.auth.getUser(),
+                supabase.from('announcements').select('*').order('created_at', { ascending: false })
+            ])
+
+            if (authData?.user) {
+                const { data: profile } = await supabase.from('users').select('role_id, department_id, semester').eq('id', authData.user.id).single()
+                if (profile) {
+                    const p = profile as unknown as { role_id: number; department_id: string; semester: number | null }
+                    setUserContext({ roleId: p.role_id, departmentId: p.department_id || '', semester: p.semester })
+                }
+            }
+
+            setItems((annData ?? []) as unknown as Announcement[])
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const [loading, setLoading] = useState(true)
+
+    function openNew() { 
+        setEditing(null); 
+        // Pre-fill restrictions for HOD and Incharge
+        const restricted = { ...EMPTY }
+        if (userContext.roleId >= 4 && userContext.departmentId) restricted.target_department = userContext.departmentId
+        if (userContext.roleId >= 5 && userContext.semester) restricted.target_semester = userContext.semester
+        
+        setForm(restricted); 
+        setShowModal(true) 
+    }
+    
+    function openEdit(a: any) {
+        setEditing(a)
+        setForm({
+            title: a.title, content: a.content, category: a.category, is_pinned: a.is_pinned,
+            is_published: a.is_published, target_role: a.target_role, 
+            target_department: a.target_department || '', 
+            target_semester: a.target_semester || '', 
+            expires_at: a.expires_at?.slice(0, 10) ?? ''
+        })
+        setShowModal(true)
+    }
+
+    async function save() {
+        setSaving(true)
+        try {
+            const { data: { user } } = await supabase.auth.getUser()
+            const payload = { 
+                ...form, 
+                target_department: form.target_department || null,
+                target_semester: form.target_semester || null,
+                expires_at: form.expires_at || null, 
+                created_by: user?.id 
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const { error } = editing
+                ? await (supabase.from('announcements') as any).update(payload).eq('id', editing.id)
+                : await (supabase.from('announcements') as any).insert(payload)
+            if (error) { toast.error(error.message); return }
+            toast.success(editing ? 'Updated' : 'Created')
+
+            // Send push notification for new published announcements
+            if (!editing && form.is_published) {
+                try {
+                    await fetch('/api/push/send', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            title: `📢 ${form.title}`,
+                            message: form.content.slice(0, 200),
+                            target_role: form.target_role,
+                        }),
+                    })
+                } catch {
+                    // Push notification failure should not block announcement creation
+                    console.warn('Push notification failed, announcement was still created')
+                }
+            }
+
+            setShowModal(false); load()
+        } finally { setSaving(false) }
+    }
+
+    async function del(id: string) {
+        if (!confirm('Delete?')) return
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { error } = await (supabase.from('announcements') as any).delete().eq('id', id)
+        if (error) toast.error(error.message)
+        else { toast.success('Deleted'); load() }
+    }
+
+    return (
+        <div>
+            <PageHeader title="Announcements" subtitle="Manage notices and posts" icon="📢"
+                action={<button onClick={openNew} className="btn-primary">+ New Announcement</button>} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {items.map(a => {
+                    const deptTarget = departments.find(d => d.id === (a as any).target_department)?.name || 'All Departments'
+                    return (
+                        <div key={a.id} className="glass-card" style={{
+                            padding: '1.25rem 1.5rem',
+                            borderLeft: `3px solid ${a.is_pinned ? '#3b82f6' : 'var(--border)'}`
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', flexWrap: 'wrap' }}>
+                                <div>
+                                    <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
+                                        {a.is_pinned && <Badge variant="info">📌 Pinned</Badge>}
+                                        <span className={cn('badge', getCategoryBadge(a.category))}>{a.category}</span>
+                                        <Badge variant={a.is_published ? 'success' : 'default'}>{a.is_published ? 'Published' : 'Draft'}</Badge>
+                                        <Badge variant="outline">{deptTarget}</Badge>
+                                        {(a as any).target_semester && <Badge variant="outline">Sem {(a as any).target_semester}</Badge>}
+                                    </div>
+                                    <h3 style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)', margin: '0 0 0.25rem' }}>{a.title}</h3>
+                                    <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>{a.content.slice(0, 120)}{a.content.length > 120 ? '…' : ''}</p>
+                                    <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', margin: '0.5rem 0 0' }}>
+                                        {a.published_at ? formatDate(a.published_at) : 'Not published'}
+                                    </p>
+                                </div>
+                                <div style={{ display: 'flex', gap: '0.5rem', flexShrink: 0 }}>
+                                    <button onClick={() => openEdit(a)} className="btn-secondary" style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}>Edit</button>
+                                    <button onClick={() => del(a.id)} className="btn-danger" style={{ padding: '0.35rem 0.75rem' }}>Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                })}
+            </div>
+
+            {showModal && (
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+                    <div className="glass-card" style={{ width: '100%', maxWidth: 580, padding: '2rem', maxHeight: '90vh', overflowY: 'auto' }}>
+                        <h3 style={{ fontWeight: 700, marginBottom: '1.5rem' }}>{editing ? 'Edit' : 'New'} Announcement</h3>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Title</label>
+                                <input className="input-dark" value={form.title} placeholder="Announcement title" onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
+                            </div>
+                            <div>
+                                <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Content</label>
+                                <textarea className="input-dark" rows={5} placeholder="Write your notice here..." value={form.content} onChange={e => setForm(f => ({ ...f, content: e.target.value }))} />
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Category</label>
+                                    <select className="input-dark" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
+                                        {['general', 'exam', 'event', 'placement'].map(c => <option key={c} value={c}>{c}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Expires (optional)</label>
+                                    <input className="input-dark" type="date" value={form.expires_at} onChange={e => setForm(f => ({ ...f, expires_at: e.target.value }))} />
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Target Dept</label>
+                                    <select className="input-dark" value={form.target_department} disabled={userContext.roleId >= 4 && userContext.departmentId !== ''} onChange={e => setForm(f => ({...f, target_department: e.target.value}))}>
+                                        <option value="">All Departments</option>
+                                        {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                                    </select>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                                    <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Target Sem</label>
+                                    <select className="input-dark" value={form.target_semester} disabled={userContext.roleId >= 5 && userContext.semester !== null} onChange={e => setForm(f => ({...f, target_semester: e.target.value ? Number(e.target.value) : ''}))}>
+                                        <option value="">All Semesters</option>
+                                        {[1,2,3,4,5,6].map(s => <option key={s} value={s}>Semester {s}</option>)}
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
+                                {[['is_pinned', '📌 Pin this'], ['is_published', '✅ Publish now']].map(([k, l]) => (
+                                    <label key={k} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                        <input type="checkbox" checked={(form as any)[k]} onChange={e => setForm(f => ({ ...f, [k]: e.target.checked }))} />
+                                        {l}
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem', justifyContent: 'flex-end' }}>
+                            <button onClick={() => setShowModal(false)} className="btn-secondary">Cancel</button>
+                            <button onClick={save} className="btn-primary" disabled={saving || !form.title || !form.content}>{saving ? 'Saving…' : 'Save'}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
