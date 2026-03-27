@@ -2,6 +2,10 @@
   "name": "abc-polytechnic",
   "version": "1.0.0",
   "private": true,
+  "workspaces": [
+    "web",
+    "shared"
+  ],
   "dependencies": {
     "@supabase/supabase-js": "^2.100.0"
   }
