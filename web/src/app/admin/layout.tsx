@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
-
-import AdminLayoutClient from '@/components/layout/AdminLayoutClient'
+import ResponsiveLayout from '@/components/layout/ResponsiveLayout'
+import GlobalSearch from '@/components/GlobalSearch'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient()
@@ -20,8 +20,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     if (!profile || profile.role_id === 4) redirect('/student/profile')
 
     return (
-        <AdminLayoutClient 
-            sidebarContent={
+        <ResponsiveLayout
+            logoText="Admin Portal"
+            sidebar={
                 <Sidebar
                     role="admin"
                     roleId={profile.role_id}
@@ -29,8 +30,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                     email={profile.email ?? user.email ?? ''}
                 />
             }
+            topBar={
+                <>
+                    <div className="text-sm font-medium text-[var(--text-muted)]">Portal / Management</div>
+                    <div className="w-[300px]">
+                        <GlobalSearch />
+                    </div>
+                </>
+            }
         >
             {children}
-        </AdminLayoutClient>
+        </ResponsiveLayout>
     )
 }

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Sidebar from '@/components/layout/Sidebar'
+import ResponsiveLayout from '@/components/layout/ResponsiveLayout'
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
     const supabase = await createClient()
@@ -17,13 +18,17 @@ export default async function StudentLayout({ children }: { children: React.Reac
     if (profile && profile.role_id <= 3) redirect('/admin/dashboard')
 
     return (
-        <div>
-            <Sidebar
-                role="student"
-                userName={profile?.full_name ?? 'Student'}
-                email={profile?.email ?? user.email ?? ''}
-            />
-            <main className="page-container fade-in">{children}</main>
-        </div>
+        <ResponsiveLayout
+            logoText="Student Portal"
+            sidebar={
+                <Sidebar
+                    role="student"
+                    userName={profile?.full_name ?? 'Student'}
+                    email={profile?.email ?? user.email ?? ''}
+                />
+            }
+        >
+            {children}
+        </ResponsiveLayout>
     )
 }

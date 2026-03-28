@@ -13,6 +13,8 @@ const studentNav: NavItem[] = [
     { href: '/', label: 'Home', icon: '🏠' },
     { href: '/student/profile', label: 'Profile', icon: '👤' },
     { href: '/student/results', label: 'Results', icon: '📊' },
+    { href: '/student/attendance', label: 'Attendance', icon: '✅' },
+    { href: '/student/documents', label: 'Documents', icon: '📂' },
     { href: '/student/announcements', label: 'Announcements', icon: '📢' },
     { href: '/student/notifications', label: 'Notifications', icon: '🔔' },
     { href: '/student/chatbot', label: 'AI Assistant', icon: '🤖' },
@@ -26,15 +28,23 @@ const adminNav: NavItem[] = [
     { href: '/admin/students', label: 'Students', icon: '🎓' },
     { href: '/admin/subjects', label: 'Subjects', icon: '📘', minRole: 2 },
     { href: '/admin/results', label: 'Results', icon: '📋' },
+    { href: '/admin/attendance', label: 'Attendance', icon: '✅' },
+    { href: '/admin/documents', label: 'Documents', icon: '📂' },
     { href: '/admin/corrections', label: 'Corrections', icon: '✏️' },
     { href: '/admin/announcements', label: 'Announcements', icon: '📢', minRole: 2 },
     { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
     { href: '/admin/manage', label: 'Admin Management', icon: '⚙️', minRole: 1 },
 ]
 
-interface SidebarProps { role: 'admin' | 'student'; roleId?: number; userName: string; email: string }
+interface SidebarProps { 
+  role: 'admin' | 'student'; 
+  roleId?: number; 
+  userName: string; 
+  email: string;
+  onItemClick?: () => void;
+}
 
-export default function Sidebar({ role, roleId = 4, userName, email }: SidebarProps) {
+export default function Sidebar({ role, roleId = 4, userName, email, onItemClick }: SidebarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const supabase = createClient()
@@ -43,7 +53,7 @@ export default function Sidebar({ role, roleId = 4, userName, email }: SidebarPr
         : studentNav
 
     const roleName = ROLE_MAP[roleId] ?? 'student'
-    const roleLabel = roleName.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())
+    const roleLabel = roleName.replace('_', ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
 
     async function handleLogout() {
         await supabase.auth.signOut()
@@ -53,7 +63,7 @@ export default function Sidebar({ role, roleId = 4, userName, email }: SidebarPr
     }
 
     return (
-        <aside className="sidebar" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div suppressHydrationWarning className="flex flex-col h-full bg-[var(--bg-secondary)] min-h-screen">
             {/* Logo */}
             <div style={{ padding: '1.5rem 1.25rem', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -86,6 +96,7 @@ export default function Sidebar({ role, roleId = 4, userName, email }: SidebarPr
                     <Link
                         key={item.href}
                         href={item.href}
+                        onClick={onItemClick}
                         className={cn('sidebar-link', pathname.startsWith(item.href) && item.href !== '/' && 'active', pathname === item.href && 'active')}
                     >
                         <span style={{ fontSize: '1rem' }}>{item.icon}</span>
@@ -117,6 +128,6 @@ export default function Sidebar({ role, roleId = 4, userName, email }: SidebarPr
                     🚪 Sign Out
                 </button>
             </div>
-        </aside>
+        </div>
     )
 }

@@ -7,6 +7,7 @@ import Badge from '@/components/ui/Badge'
 import { getGradeColor } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { EXAM_TYPES, DEPARTMENTS } from '@/types/database.types'
+import { exportToCSV } from '@/lib/export-utils'
 
 type SubjectRow = { id: string; subject_name: string; subject_code: string; credits: number }
 type StudentRow = { id: string; full_name: string; roll_no: number | null; academic_year: string | null; scheme: string | null }
@@ -47,7 +48,7 @@ export default function AdminResultsPage() {
     const [foundStudent, setFoundStudent] = useState<StudentRow | null>(null)
     const [marks, setMarks] = useState<MarksEntry>({})
     const [saving, setSaving] = useState(false)
-    const [maxMarks, setMaxMarks] = useState(60)
+    const [maxMarks, setMaxMarks] = useState(30)
 
     // View filters
     const [filterDept, setFilterDept] = useState('')
@@ -87,7 +88,7 @@ export default function AdminResultsPage() {
 
         if (targetDeptId) q = q.eq('users.department_id', targetDeptId)
         if (filterSem) q = q.eq('users.semester', filterSem)
-        if (filterRollNo) q = q.eq('users.roll_no', filterRollNo)
+        if (filterRollNo) q = q.eq('users.roll_no', Number(filterRollNo) as any)
 
         const { data } = await q.order('created_at', { ascending: false }).limit(200)
         setResults((data as unknown as ResultRow[]) ?? [])
@@ -204,6 +205,50 @@ export default function AdminResultsPage() {
         if (error) toast.error(error.message)
         else { toast.success('Deleted'); loadResults() }
     }
+    
+    async function handleExport() {
+        setSaving(true)
+        try {
+            let q = supabase
+                .from('results')
+                .select('*, users!results_student_id_fkey!inner(full_name,roll_no,department_id,semester,departments(name)), subjects(subject_code, subject_name)')
+
+            let targetDeptId = filterDept
+            if (userRoleId >= 2 && userDeptId) targetDeptId = userDeptId
+
+            if (targetDeptId) q = q.eq('users.department_id', targetDeptId)
+            if (filterSem) q = q.eq('users.semester', filterSem)
+            if (filterRollNo) q = q.eq('users.roll_no', Number(filterRollNo) as any)
+
+            const { data, error } = await q.order('created_at', { ascending: false })
+            
+            if (error || !data || data.length === 0) {
+                toast.error('No results to export')
+                return
+            }
+
+            const exportData = (data as any[]).map(r => ({
+                Student: r.users?.full_name,
+                'Roll No': r.users?.roll_no,
+                Branch: r.users?.departments?.name,
+                Subject: r.subjects?.subject_name,
+                Code: r.subjects?.subject_code,
+                Marks: r.marks_obtained,
+                'Max Marks': r.max_marks,
+                Grade: r.grade,
+                Semester: r.semester,
+                Year: r.academic_year,
+                'Exam Type': r.exam_type
+            }))
+
+            exportToCSV(exportData, 'Results_Export')
+            toast.success('Results exported!')
+        } catch (err) {
+            toast.error('Export failed')
+        } finally {
+            setSaving(false)
+        }
+    }
 
     const availableDepts = (userRoleId >= 3 && userDeptId) ? depts.filter(d => d.id === userDeptId) : depts
 
@@ -240,6 +285,17 @@ export default function AdminResultsPage() {
                         <div>
                             <label className="label-default">Roll No</label>
                             <input type="text" inputMode="numeric" pattern="[0-9]*" maxLength={3} className="input-dark" placeholder="e.g. 5" value={filterRollNo} onChange={e => setFilterRollNo(e.target.value.replace(/\D/g, ''))} />
+                        </div>
+                        
+                        <div style={{ marginLeft: 'auto' }}>
+                            <button 
+                                onClick={handleExport}
+                                disabled={loading || saving}
+                                className="btn-secondary"
+                                style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                            >
+                                📥 Export to CSV
+                            </button>
                         </div>
                     </div>
                     <div className="glass-card" style={{ overflowX: 'auto' }}>

@@ -1,244 +1,911 @@
-export type Json = string | number | boolean | null | { [key: string]: Json } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "14.1"
+  }
   public: {
     Tables: {
-      roles: {
-        Row: { id: number; name: string; level: number }
-        Insert: { id: number; name: string; level?: number }
-        Update: { id?: number; name?: string; level?: number }
-      }
-      departments: {
-        Row: { id: string; name: string; code: string; is_active: boolean; created_at: string; updated_at: string }
-        Insert: { id?: string; name: string; code: string; is_active?: boolean; created_at?: string; updated_at?: string }
-        Update: Partial<Database['public']['Tables']['departments']['Insert']>
-      }
-      contact_messages: {
+      academic_calendar: {
         Row: {
+          created_at: string | null
+          department_id: string | null
+          description: string | null
+          end_date: string
+          event_type: string
+          file_url: string | null
           id: string
-          name: string
-          email: string
-          message: string
-          status: string
-          created_at: string
+          start_date: string
+          title: string
         }
         Insert: {
+          created_at?: string | null
+          department_id?: string | null
+          description?: string | null
+          end_date: string
+          event_type: string
+          file_url?: string | null
           id?: string
-          name: string
-          email: string
-          message: string
-          status?: string
-          created_at?: string
+          start_date: string
+          title: string
         }
         Update: {
+          created_at?: string | null
+          department_id?: string | null
+          description?: string | null
+          end_date?: string
+          event_type?: string
+          file_url?: string | null
           id?: string
-          name?: string
-          email?: string
-          message?: string
-          status?: string
-          created_at?: string
+          start_date?: string
+          title?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "academic_calendar_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      users: {
+      activity_logs: {
         Row: {
-          id: string
-          role_id: number
-          department_id: string | null
-          full_name: string
-          email: string
-          roll_no: number | null
-          year: number | null
-          semester: number | null
-          academic_year: string | null
-          scheme: string | null
-          avatar_url: string | null
-          phone: string | null
-          is_active: boolean
+          action: string
           created_at: string
-          updated_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_id: string | null
+          user_id: string
         }
         Insert: {
-          id: string
-          role_id?: number
-          department_id?: string | null
-          full_name: string
-          email: string
-          roll_no?: number | null
-          year?: number | null
-          semester?: number | null
-          academic_year?: string | null
-          scheme?: string | null
-          avatar_url?: string | null
-          phone?: string | null
-          is_active?: boolean
+          action: string
           created_at?: string
-          updated_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          user_id: string
         }
-        Update: Partial<Database['public']['Tables']['users']['Insert']>
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       admins: {
         Row: {
-          id: string
-          user_id: string
-          name: string
-          email: string
-          role: string
+          created_at: string
           department_id: string | null
-          semester: number | null
+          email: string
+          id: string
+          name: string
           phone: string | null
+          role: string
+          semester: number | null
           status: string
-          created_at: string
           updated_at: string
+          user_id: string
         }
-        Insert: Omit<Database['public']['Tables']['admins']['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Database['public']['Tables']['admins']['Insert']>
-      }
-      subjects: {
-        Row: {
-          id: string
-          subject_code: string
-          subject_name: string
-          department_id: string
-          semester: number
-          scheme: string
-          credits: number
-          is_active: boolean
-          created_at: string
-          updated_at: string
+        Insert: {
+          created_at?: string
+          department_id?: string | null
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          role: string
+          semester?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
         }
-        Insert: Omit<Database['public']['Tables']['subjects']['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Database['public']['Tables']['subjects']['Insert']>
-      }
-      results: {
-        Row: {
-          id: string
-          student_id: string
-          subject_id: string
-          exam_type: string
-          marks_obtained: number
-          max_marks: number
-          grade: string | null
-          semester: number
-          academic_year: string
-          remarks: string | null
-          uploaded_by: string | null
-          created_at: string
-          updated_at: string
+        Update: {
+          created_at?: string
+          department_id?: string | null
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          role?: string
+          semester?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
         }
-        Insert: Omit<Database['public']['Tables']['results']['Row'], 'id' | 'grade' | 'created_at' | 'updated_at'>
-        Update: Partial<Database['public']['Tables']['results']['Insert']>
-      }
-      result_corrections: {
-        Row: {
-          id: string
-          result_id: string
-          student_id: string
-          subject_code: string
-          exam_type: string
-          semester: number
-          academic_year: string
-          old_marks: number
-          new_marks: number
-          reason: string
-          status: 'pending' | 'approved' | 'rejected'
-          requested_by: string
-          reviewed_by: string | null
-          reviewed_at: string | null
-          created_at: string
-        }
-        Insert: Omit<Database['public']['Tables']['result_corrections']['Row'], 'id' | 'status' | 'reviewed_by' | 'reviewed_at' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['result_corrections']['Insert']> & { status?: 'pending' | 'approved' | 'rejected'; reviewed_by?: string; reviewed_at?: string }
-      }
-      announcements: {
-        Row: {
-          id: string
-          title: string
-          content: string
-          category: string
-          target_role: number | null
-          is_pinned: boolean
-          is_published: boolean
-          published_at: string | null
-          expires_at: string | null
-          created_by: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: Omit<Database['public']['Tables']['announcements']['Row'], 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Database['public']['Tables']['announcements']['Insert']>
+        Relationships: [
+          {
+            foreignKeyName: "admins_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       announcement_reads: {
         Row: {
-          id: string
           announcement_id: string
-          user_id: string
+          id: string
           read_at: string
-        }
-        Insert: Omit<Database['public']['Tables']['announcement_reads']['Row'], 'id' | 'read_at'>
-        Update: Partial<Database['public']['Tables']['announcement_reads']['Insert']>
-      }
-      notifications: {
-        Row: {
-          id: string
           user_id: string
+        }
+        Insert: {
+          announcement_id: string
+          id?: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          announcement_id?: string
+          id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_pinned: boolean
+          is_published: boolean
+          published_at: string | null
+          target_department: string | null
+          target_role: number | null
+          target_semester: number | null
           title: string
-          message: string
-          type: string
-          is_read: boolean
-          action_url: string | null
-          created_at: string
+          updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['notifications']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['notifications']['Insert']>
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_pinned?: boolean
+          is_published?: boolean
+          published_at?: string | null
+          target_department?: string | null
+          target_role?: number | null
+          target_semester?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_pinned?: boolean
+          is_published?: boolean
+          published_at?: string | null
+          target_department?: string | null
+          target_role?: number | null
+          target_semester?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_target_department_fkey"
+            columns: ["target_department"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_target_role_fkey"
+            columns: ["target_role"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
-      push_tokens: {
+      attendance: {
         Row: {
-          id: string
-          user_id: string
-          token: string
-          platform: string
           created_at: string
+          date: string
+          id: string
+          remarks: string | null
+          status: string
+          student_id: string
+          subject_id: string
+          updated_at: string
+          uploaded_by: string | null
         }
-        Insert: Omit<Database['public']['Tables']['push_tokens']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['push_tokens']['Insert']>
+        Insert: {
+          created_at?: string
+          date?: string
+          id?: string
+          remarks?: string | null
+          status: string
+          student_id: string
+          subject_id: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          remarks?: string | null
+          status?: string
+          student_id?: string
+          subject_id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      calendar_events: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string
+          id: string
+          is_all_day: boolean | null
+          start_date: string
+          target_department: string | null
+          target_semester: number | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date: string
+          id?: string
+          is_all_day?: boolean | null
+          start_date: string
+          target_department?: string | null
+          target_semester?: number | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_all_day?: boolean | null
+          start_date?: string
+          target_department?: string | null
+          target_semester?: number | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_target_department_fkey"
+            columns: ["target_department"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chatbot_logs: {
         Row: {
-          id: string
-          user_id: string | null
-          session_id: string
-          user_message: string
           bot_response: string
-          tokens_used: number | null
-          response_ms: number | null
+          created_at: string
+          id: string
           is_flagged: boolean
           platform: string
-          created_at: string
+          response_ms: number | null
+          session_id: string
+          tokens_used: number | null
+          user_id: string | null
+          user_message: string
         }
-        Insert: Omit<Database['public']['Tables']['chatbot_logs']['Row'], 'id' | 'created_at'>
-        Update: Partial<Database['public']['Tables']['chatbot_logs']['Insert']>
+        Insert: {
+          bot_response: string
+          created_at?: string
+          id?: string
+          is_flagged?: boolean
+          platform?: string
+          response_ms?: number | null
+          session_id: string
+          tokens_used?: number | null
+          user_id?: string | null
+          user_message: string
+        }
+        Update: {
+          bot_response?: string
+          created_at?: string
+          id?: string
+          is_flagged?: boolean
+          platform?: string
+          response_ms?: number | null
+          session_id?: string
+          tokens_used?: number | null
+          user_id?: string | null
+          user_message?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chatbot_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contact_messages: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      departments: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      documents: {
+        Row: {
+          academic_year: string | null
+          created_at: string
+          department_id: string | null
+          description: string | null
+          file_url: string
+          id: string
+          semester: number | null
+          title: string
+          type: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          academic_year?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          file_url: string
+          id?: string
+          semester?: number | null
+          title: string
+          type: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          academic_year?: string | null
+          created_at?: string
+          department_id?: string | null
+          description?: string | null
+          file_url?: string
+          id?: string
+          semester?: number | null
+          title?: string
+          type?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          platform: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          platform?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      result_corrections: {
+        Row: {
+          created_at: string
+          id: string
+          new_marks: number
+          old_marks: number
+          reason: string
+          requested_by: string
+          result_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          student_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_marks: number
+          old_marks: number
+          reason: string
+          requested_by: string
+          result_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          student_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_marks?: number
+          old_marks?: number
+          reason?: string
+          requested_by?: string
+          result_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          student_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "result_corrections_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_corrections_result_id_fkey"
+            columns: ["result_id"]
+            isOneToOne: false
+            referencedRelation: "results"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_corrections_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "result_corrections_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      results: {
+        Row: {
+          academic_year: string
+          created_at: string
+          exam_type: string
+          grade: string | null
+          id: string
+          marks_obtained: number
+          max_marks: number
+          remarks: string | null
+          semester: number
+          student_id: string
+          subject_id: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          academic_year: string
+          created_at?: string
+          exam_type: string
+          grade?: string | null
+          id?: string
+          marks_obtained: number
+          max_marks?: number
+          remarks?: string | null
+          semester: number
+          student_id: string
+          subject_id: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          academic_year?: string
+          created_at?: string
+          exam_type?: string
+          grade?: string | null
+          id?: string
+          marks_obtained?: number
+          max_marks?: number
+          remarks?: string | null
+          semester?: number
+          student_id?: string
+          subject_id?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "results_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      roles: {
+        Row: {
+          id: number
+          level: number
+          name: string
+        }
+        Insert: {
+          id: number
+          level?: number
+          name: string
+        }
+        Update: {
+          id?: number
+          level?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      subjects: {
+        Row: {
+          created_at: string
+          credits: number
+          department_id: string
+          id: string
+          is_active: boolean
+          scheme: string
+          semester: number
+          subject_code: string
+          subject_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          department_id: string
+          id?: string
+          is_active?: boolean
+          scheme?: string
+          semester: number
+          subject_code: string
+          subject_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          department_id?: string
+          id?: string
+          is_active?: boolean
+          scheme?: string
+          semester?: number
+          subject_code?: string
+          subject_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subjects_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          academic_year: string | null
+          avatar_url: string | null
+          created_at: string
+          department_id: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active: boolean
+          phone: string | null
+          push_token: string | null
+          role_id: number
+          roll_no: number | null
+          scheme: string | null
+          semester: number | null
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          academic_year?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          department_id?: string | null
+          email: string
+          full_name: string
+          id: string
+          is_active?: boolean
+          phone?: string | null
+          push_token?: string | null
+          role_id?: number
+          roll_no?: number | null
+          scheme?: string | null
+          semester?: number | null
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          academic_year?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          department_id?: string | null
+          email?: string
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          phone?: string | null
+          push_token?: string | null
+          role_id?: number
+          roll_no?: number | null
+          scheme?: string | null
+          semester?: number | null
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "users_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "users_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       student_result_summary: {
         Row: {
-          student_id: string
-          full_name: string
-          roll_no: number | null
-          academic_year: string
-          semester: number
-          total_subjects: number
-          percentage: number
-          failed_subjects: number
+          academic_year: string | null
+          failed_subjects: number | null
+          percentage: number | null
+          semester: number | null
+          student_id: string | null
+          total_subjects: number | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "results_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
-      is_admin: { Args: Record<string, never>; Returns: boolean }
-      is_super_admin: { Args: Record<string, never>; Returns: boolean }
-      is_staff: { Args: Record<string, never>; Returns: boolean }
-      current_role_id: { Args: Record<string, never>; Returns: number }
-      user_department: { Args: Record<string, never>; Returns: string }
+      current_role_id: { Args: never; Returns: number }
+      is_admin: { Args: never; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
+      is_super_admin: { Args: never; Returns: boolean }
+      user_department: { Args: never; Returns: string }
     }
     Enums: {
       [_ in never]: never
@@ -249,54 +916,160 @@ export interface Database {
   }
 }
 
-// Convenience type aliases
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
-export type UserProfile = Tables<'users'>
-export type Subject = Tables<'subjects'>
-export type Result = Tables<'results'>
-export type ResultCorrection = Tables<'result_corrections'>
-export type Announcement = Tables<'announcements'>
-export type AnnouncementRead = Tables<'announcement_reads'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
+
+// --- Application Constants & Helpers ---
+
+/**
+ * Common mapped types for convenience
+ */
 export type Notification = Tables<'notifications'>
-export type PushToken = Tables<'push_tokens'>
-export type ChatbotLog = Tables<'chatbot_logs'>
-export type Admin = Tables<'admins'>
+export type Announcement = Tables<'announcements'>
 
-export type UserRole = 'super_admin' | 'hod' | 'class_incharge' | 'student'
-
-// Role ID to name mapping
-export const ROLE_MAP: Record<number, UserRole> = {
+/**
+ * Global Role Map
+ */
+export const ROLE_MAP: Record<number, string> = {
   1: 'super_admin',
   2: 'hod',
   3: 'class_incharge',
-  4: 'student',
+  4: 'student'
 }
 
-// Exam types with their max marks
+/**
+ * Static Department Codes
+ */
+export const DEPARTMENTS = ['CE', 'ME', 'EE', 'CS', 'EC', 'IT', 'COMMON']
+
+/**
+ * Exam Configuration
+ */
 export const EXAM_TYPES = [
-  { key: 'class_test_1', label: 'Class Test 1', maxMarks: 30 },
-  { key: 'class_test_2', label: 'Class Test 2', maxMarks: 30 },
+  { key: 'ct_1', label: 'Class Test 1', maxMarks: 30 },
+  { key: 'ct_2', label: 'Class Test 2', maxMarks: 30 },
   { key: 'house_test', label: 'House Test', maxMarks: 60 },
-  { key: 'final_exam', label: 'Final Exam', maxMarks: 60 },
-] as const
+  { key: 'final_exam', label: 'Semester Final', maxMarks: 60 }
+]
 
-export type ExamTypeKey = typeof EXAM_TYPES[number]['key']
 
-// Departments
-export const DEPARTMENTS = [
-  'Computer Engineering',
-  'Civil Engineering',
-  'Mechanical Engineering',
-  'Electrical Engineering',
-  'Electronics & Communication',
-  'Information Technology',
-  'Architecture Assistantship',
-  'COMMON',
-] as const
-
-// Year → Semester mapping (diploma)
-export const YEAR_SEMESTERS: Record<number, number[]> = {
-  1: [1, 2],
-  2: [3, 4],
-  3: [5, 6],
-}

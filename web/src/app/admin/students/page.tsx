@@ -10,6 +10,7 @@ import { DEPARTMENTS } from '@/types/database.types'
 import type { Tables } from '@/types/database.types'
 import Link from 'next/link'
 import BulkImport from '@/components/students/BulkImport'
+import { exportToCSV } from '@/lib/export-utils'
 
 type Student = Tables<'users'>
 
@@ -123,6 +124,49 @@ export default function AdminStudentsPage() {
         }
     }
 
+    async function handleExport() {
+        setSaving(true)
+        try {
+            let query = supabase
+                .from('users')
+                .select('full_name, roll_no, email, phone, year, semester, academic_year, is_active, departments(name)')
+                .eq('role_id', 4)
+
+            if (userRoleId === 2 || userRoleId === 3) {
+                if (userDept) query = query.eq('department_id', userDept)
+            } else if (deptFilter) {
+                query = query.eq('department_id', deptFilter)
+            }
+            if (semFilter) query = query.eq('semester', semFilter)
+            if (schemeFilter) query = query.eq('scheme', schemeFilter)
+
+            const { data } = await query
+            if (!data || data.length === 0) {
+                toast.error('No data found to export')
+                return
+            }
+
+            const exportData = (data as any[]).map(s => ({
+                Name: s.full_name,
+                'Roll No': s.roll_no,
+                Email: s.email,
+                Phone: s.phone ?? '—',
+                Department: s.departments?.name ?? '—',
+                Semester: s.semester,
+                Year: s.year,
+                Scheme: schemeFilter,
+                Status: s.is_active ? 'Active' : 'Inactive'
+            }))
+
+            exportToCSV(exportData, 'Students_List')
+            toast.success('Students list exported!')
+        } catch (err) {
+            toast.error('Export failed')
+        } finally {
+            setSaving(false)
+        }
+    }
+
     return (
         <div>
             <PageHeader
@@ -176,6 +220,17 @@ export default function AdminStudentsPage() {
                         Clear
                     </button>
                 )}
+                
+                <div style={{ marginLeft: 'auto' }}>
+                    <button 
+                        onClick={handleExport}
+                        disabled={loading || saving}
+                        className="btn-secondary"
+                        style={{ padding: '0.4rem 0.75rem', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        📥 Export to CSV
+                    </button>
+                </div>
             </div>
 
             <div className="glass-card" style={{ overflowX: 'auto' }}>

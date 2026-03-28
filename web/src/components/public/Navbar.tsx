@@ -130,7 +130,7 @@ export default function GlobalNavbar() {
     if (isPortal) return null
 
     return (
-        <nav style={{
+        <nav suppressHydrationWarning style={{
             position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
             background: scrolled ? 'rgba(8,12,20,0.97)' : 'rgba(8,12,20,0.75)',
             backdropFilter: 'blur(16px)',
@@ -140,8 +140,8 @@ export default function GlobalNavbar() {
             <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', height: 64 }}>
 
                 {/* Logo */}
-                <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none', flexShrink: 0 }}>
-                    <div style={{
+                <Link href="/" suppressHydrationWarning style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none', flexShrink: 0 }}>
+                    <div suppressHydrationWarning style={{
                         width: 36, height: 36, borderRadius: '0.5rem',
                         background: 'linear-gradient(135deg,#3b82f6,#8b5cf6)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem',
