@@ -32,6 +32,15 @@ Try the deployed web demo:
 
 (If the demo link is down or you see development content, make sure environment variables are configured for the deployed site.)
 
+## Demo Credentials (Student)
+
+For convenience, a demo student account is available on the deployed site:
+
+- Username: `qwerty@gmail.com`
+- Password: `123456`
+
+Note: This is a demo/test account only. Do NOT use these credentials for any production or sensitive data. If you need additional demo accounts or different credentials, update the Supabase seed data or contact the repo owner.
+
 ## Tech Stack
 
 | Layer | Technology |
