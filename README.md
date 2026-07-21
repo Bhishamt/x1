@@ -2,6 +2,12 @@
 
 A full-stack digital platform for **ABC Polytechnic Institute** built with **Next.js** (web) + **Expo React Native** (mobile).
 
+> Live demo: [Smart Campus AI Web Application](https://x1-drab.vercel.app/)
+
+## Quick overview
+
+This repository contains a web app (Next.js) and a mobile app (Expo React Native) that together provide a digital campus experience: student portals, admin dashboard, notifications, and an AI-powered chatbot assistant.
+
 ## Features
 
 ### Student Portal
@@ -17,6 +23,14 @@ A full-stack digital platform for **ABC Polytechnic Institute** built with **Nex
 - 🎓 Student management
 - 📋 Course & result management
 - 📊 Overview statistics
+
+## Live Demo
+
+Try the deployed web demo:
+
+- Smart Campus AI Web Application — https://x1-drab.vercel.app/
+
+(If the demo link is down or you see development content, make sure environment variables are configured for the deployed site.)
 
 ## Tech Stack
 
@@ -97,6 +111,10 @@ abc/
 └── supabase/     # SQL migrations
 ```
 
+## Screenshots
+
+_Add screenshots here or link to the deployed site above._
+
 ## Security
 
 - All secrets stored in `.env` / `.env.local` (git-ignored)
@@ -104,6 +122,10 @@ abc/
 - Supabase Row Level Security (RLS) policies enforced
 - Server-side admin API routes validate role before executing
 - Push notifications filtered per user (`user_id=eq.{uuid}`)
+
+## Contributing
+
+Contributions welcome — please open issues or PRs. If you're adding features that require new environment variables, include updates to the README and `.env.example` files.
 
 ## License
 
