@@ -1,141 +1,110 @@
-# ABC Polytechnic Institute — Digital Platform
+# Smart Campus AI — ABC Polytechnic Digital Platform
 
-A full-stack digital platform for **ABC Polytechnic Institute** built with **Next.js** (web) + **Expo React Native** (mobile).
+[![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://x1-drab.vercel.app/)  [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> Live demo: [Smart Campus AI Web Application](https://x1-drab.vercel.app/)
+An elegant, full-stack digital campus platform for ABC Polytechnic — web (Next.js) + mobile (Expo React Native) — delivering student portals, admin dashboards, real-time notifications, and an AI-powered assistant.
 
-## Quick overview
+Quick links
+- Live demo: https://x1-drab.vercel.app/
+- Web: /web
+- Mobile app: /app
 
-This repository contains a web app (Next.js) and a mobile app (Expo React Native) that together provide a digital campus experience: student portals, admin dashboard, notifications, and an AI-powered chatbot assistant.
+Why this project
+- Built to provide a production-ready campus experience with role-based access, realtime features, and AI assistance.
+- Focused on simplicity, security (Supabase + RLS), and cross-platform UX.
 
-## Features
+Features
+- ✨ Modern web UI (Next.js 15 + Turbopack)
+- 📱 Cross-platform mobile (Expo + React Native)
+- 🔐 Supabase Auth + Role-based access control
+- 🔔 Realtime push & in-app notifications
+- 🤖 AI chatbot integrated with OpenAI
+- 📊 Admin dashboards for student, course & result management
 
-### Student Portal
-- 🔐 Secure login with Supabase Auth
-- 📊 Academic results viewing
-- 📢 Real-time announcements & notices
-- 🔔 Real-time push notifications (in-app + device push)
-- 👤 Profile management
-- 🤖 AI chatbot assistant
+Demo account (student)
+- Email: qwerty@gmail.com
+- Password: 123456
 
-### Admin Panel (Web & Mobile)
-- 📢 Broadcast notifications — all students / by department / by year
-- 🎓 Student management
-- 📋 Course & result management
-- 📊 Overview statistics
+Note: demo account is for testing only. Do NOT use it for production data.
 
-## Live Demo
+Table of contents
+- Quick start
+- Development
+- Environment
+- Database
+- Project structure
+- Contributing
+- License
 
-Try the deployed web demo:
+Quick start
+1. Clone
 
-- Smart Campus AI Web Application — https://x1-drab.vercel.app/
+```bash
+git clone https://github.com/Bhishamt/x1.git
+cd x1
+```
 
-(If the demo link is down or you see development content, make sure environment variables are configured for the deployed site.)
+2. Web — run locally
 
-## Demo Credentials (Student)
-
-For convenience, a demo student account is available on the deployed site:
-
-- Username: `qwerty@gmail.com`
-- Password: `123456`
-
-Note: This is a demo/test account only. Do NOT use these credentials for any production or sensitive data. If you need additional demo accounts or different credentials, update the Supabase seed data or contact the repo owner.
-
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Web Frontend | Next.js 15 + Turbopack |
-| Mobile App | Expo SDK 54 + React Native |
-| Backend / Auth | Supabase (PostgreSQL + Auth + Realtime) |
-| Push Notifications | Expo Push API (free) |
-| AI Chatbot | OpenAI GPT |
-| Styling | Vanilla CSS (dark theme) |
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+
-- Expo CLI (`npm install -g expo-cli`)
-- A [Supabase](https://supabase.com) project
-- An [OpenAI](https://platform.openai.com) API key
-
-### Web App
 ```bash
 cd web
 cp .env.example .env.local
-# Fill in your keys in .env.local
+# fill values, then:
 npm install
 npm run dev
 ```
 
-### Mobile App
+3. Mobile — run locally
+
 ```bash
 cd app
 cp .env.example .env
-# Fill in your keys in .env
+# fill values, then:
 npm install
 npx expo start
 ```
 
-## Environment Variables
+Environment (important keys)
 
-### Web (`web/.env.local`)
+Web (web/.env.local)
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key   # server-side only
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 OPENAI_API_KEY=sk-...
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_COLLEGE_NAME=ABC Polytechnic
 ```
 
-### Mobile (`app/.env`)
+Mobile (app/.env)
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 EXPO_PUBLIC_API_URL=http://10.0.2.2:3000
 ```
 
-## Database Setup
+Database
+- Run SQL migrations found in supabase/migrations/ using the Supabase SQL Editor.
 
-Run the SQL migrations in `supabase/migrations/` in your Supabase SQL Editor.
-
-## Project Structure
+Project structure (high level)
 
 ```
 abc/
-├── web/          # Next.js web application
-│   ├── src/app/
-│   │   ├── admin/      # Admin dashboard pages
-│   │   └── student/    # Student portal pages
-│   └── src/components/
+├── web/          # Next.js web application (app dir)
 ├── app/          # Expo React Native mobile app
-│   ├── app/
-│   │   ├── (auth)/     # Login screen
-│   │   └── (student)/  # Student + admin tabs
-│   └── src/
-│       ├── context/    # AuthContext (role-based)
-│       └── lib/        # Supabase client, types, notifications
-└── supabase/     # SQL migrations
+└── supabase/     # SQL migrations & seeds
 ```
 
-## Screenshots
+Screenshots
+Add retina-ready screenshots or animated GIFs in the `assets/` folder and reference them here to show the experience.
 
-_Add screenshots here or link to the deployed site above._
+Security & best practices
+- Secrets must remain in environment variables (.env / .env.local) — never commit keys.
+- Supabase RLS policies are enforced; server-side admin routes validate role.
+- Use the service role key only in trusted server environments.
 
-## Security
+Contributing
+Contributions welcome — open issues or PRs. If adding features that require new environment variables, update README and .env.example files. Keep changes small and documented.
 
-- All secrets stored in `.env` / `.env.local` (git-ignored)
-- Role-based access: `role_id = 1` admin, `role_id = 2` student
-- Supabase Row Level Security (RLS) policies enforced
-- Server-side admin API routes validate role before executing
-- Push notifications filtered per user (`user_id=eq.{uuid}`)
-
-## Contributing
-
-Contributions welcome — please open issues or PRs. If you're adding features that require new environment variables, include updates to the README and `.env.example` files.
-
-## License
-
+License
 MIT
