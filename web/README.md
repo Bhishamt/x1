@@ -1,44 +1,93 @@
-# Smart Campus AI Web Application — Web
+# 🖥️ Smart Campus AI — Web Application
 
 [![Live Demo](https://img.shields.io/badge/demo-online-brightgreen)](https://x1-drab.vercel.app/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue?style=flat&logo=typescript)](https://www.typescriptlang.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat&logo=nextdotjs)](https://nextjs.org/)
 
-This is the web frontend (Next.js) for the Smart Campus AI Web Application. The full repository contains both the web and mobile apps to provide a digital campus experience: student portals, admin dashboard, notifications, and an AI-powered chatbot assistant.
+The web frontend of **Smart Campus AI**, built with Next.js (App Router), TypeScript,
+and Tailwind CSS. It connects to Supabase for auth, data, realtime, and the AI
+chatbot (powered by Groq).
 
-## Live Demo
+## ✨ Features
 
-Try the deployed web demo:
+- **Student portal** — browse courses, view results, access campus resources
+- **Admin dashboard** — manage students, courses, and academic data
+- **Role-based access** — Supabase Auth + Row-Level Security (RLS)
+- **Real-time notifications** — powered by Supabase Realtime
+- **AI chatbot** — intelligent assistant powered by the Groq API
+- **Responsive UI** — designed for desktop, tablet, and mobile
 
-- Smart Campus AI Web Application — https://x1-drab.vercel.app/
+## 🚀 Getting Started
 
-(If the demo link is down or you see development content, make sure environment variables are configured for the deployed site.)
+### Prerequisites
 
-## Getting Started
+- **Node.js 18+** and npm
+- A **Supabase** project (free tier is fine)
+- A **Groq API key** from [console.groq.com/keys](https://console.groq.com/keys)
 
-First, run the development server:
+### Setup
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment variables
+cp .env.example .env.local
+#  → fill in your Supabase URL, anon key, and Groq API key
+
+# 3. Run the development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the
+app.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> 💡 The AI chatbot does not work without a valid `GROQ_API_KEY`. All other
+> features only need the Supabase variables.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing-fonts) to automatically optimize and load the Geist font.
+## 🔧 Environment Variables
 
-## Learn More
+See `.env.example` for the full, documented list:
 
-To learn more about Next.js, take a look at the following resources:
+| Variable | Description |
+|----------|-------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase public anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Server-only service role key (never expose) |
+| `GROQ_API_KEY` | Groq key used to power the AI chatbot |
+| `NEXT_PUBLIC_APP_URL` | Public URL of this app (default `http://localhost:3000`) |
+| `NEXT_PUBLIC_COLLEGE_NAME` | College name shown across the UI |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+⚠️ **Never commit real keys.** `.env.local` is git-ignored.
 
-## Deploy on Vercel
+## 🧪 Useful Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app). Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run dev       # start the dev server (Turbopack)
+npm run build     # production build
+npm run start     # serve the production build
+npm run lint      # run ESLint
+```
+
+## 🧱 Tech Stack
+
+- **Framework** — Next.js 16 (App Router) + React 19
+- **Language** — TypeScript
+- **Styling** — Tailwind CSS 4
+- **Backend** — Supabase (Postgres, Auth, Realtime)
+- **AI** — Groq API
+
+## 📦 Deployment
+
+Deploy on **Vercel**:
+
+1. Push this repo to GitHub
+2. Import it into Vercel (root directory: `web`)
+3. Add the environment variables from `.env.example`
+4. Deploy — done
+
+Alternatively, use the [Next.js deployment docs](https://nextjs.org/docs/app/building-your-application/deploying).
+
+## 📄 License
+
+Part of the **Smart Campus AI** project — see the [LICENSE](../LICENSE) in the repo root.
