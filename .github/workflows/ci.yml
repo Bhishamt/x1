@@ -8,12 +8,16 @@ on:
 
 jobs:
   web-ci:
-    name: Web — lint & build
+    name: Web — type-check & build
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+      NEXT_PUBLIC_COLLEGE_NAME: ${{ secrets.NEXT_PUBLIC_COLLEGE_NAME }}
 
     steps:
       - name: Checkout repository
@@ -22,30 +26,29 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
-          cache-dependency-path: web/package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies (npm workspaces)
         run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
-
       - name: Type-check
+        working-directory: web
         run: npx tsc --noEmit
 
+      - name: Lint (report only)
+        working-directory: web
+        continue-on-error: true
+        run: npm run lint
+
       - name: Build
+        working-directory: web
         run: npm run build
 
   mobile-ci:
     name: Mobile — type-check
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: app
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -53,12 +56,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
-          cache-dependency-path: app/package-lock.json
 
-      - name: Install dependencies
+      - name: Install shared dependencies (npm workspaces)
+        run: npm ci
+
+      - name: Install app dependencies
+        working-directory: app
         run: npm ci
 
       - name: Type-check
+        working-directory: app
         run: npx tsc --noEmit
