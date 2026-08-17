@@ -35,19 +35,16 @@ By participating in this project, you agree to maintain a welcoming, inclusive, 
 git clone https://github.com/<your-username>/x1.git
 cd x1
 
-# 2. Install dependencies
-cd web && npm install
-cd ../app && npm install
+# 2. Install dependencies (npm workspaces installs web + shared from the root)
+npm ci
 
-# 3. Set up environment variables
+# 3. Set up the web app
 cp web/.env.example web/.env.local
-cp app/.env.example app/.env
-
-# 4. Run the web app
 cd web && npm run dev   # → http://localhost:3000
 
-# 5. Run the mobile app (in another terminal)
-cd app && npx expo start
+# 4. Run the mobile app (in another terminal)
+cd app && npm ci
+npm run start           # then scan QR with Expo Go
 ```
 
 ## How to Contribute
